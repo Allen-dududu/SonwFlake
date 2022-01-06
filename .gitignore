@@ -1,0 +1,10 @@
+/obj/Debug/net6.0/*.cache
+/obj/Debug/net6.0/*.pdb
+/obj/Debug/net6.0/*.exe
+SonwFlake.dll
+*.props
+*.cache
+*.suo
+/bin/Debug/net6.0/*.exe
+/obj/Debug/net6.0
+net6.0
