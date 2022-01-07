@@ -59,6 +59,9 @@ namespace SonwFlake
 
         private static SnowFlake _instance;
 
+        private readonly object _lock = new object();
+
+
         private static readonly object SLock = new object();
 
         /**
@@ -101,10 +104,13 @@ namespace SonwFlake
         /// <returns></returns>
         public long NextId()
         {
-            WaitIfNecessary();
-            long next = this.timestampAndSequence;
-            long timestampWithSequence = next & timestampAndSequenceMask;
-            return (long)(this.workerId | timestampWithSequence);
+            lock (_lock)
+            {
+                WaitIfNecessary();
+
+                long timestampWithSequence = timestampAndSequence & timestampAndSequenceMask;
+                return (long)(this.workerId | timestampWithSequence);
+            }
         }
 
         /// <summary>
@@ -113,7 +119,7 @@ namespace SonwFlake
         /// </summary>
         private void WaitIfNecessary()
         {
-            long currentWithSequence = Interlocked.Increment(ref this.timestampAndSequence);
+            long currentWithSequence = ++this.timestampAndSequence;
             long current = currentWithSequence >> sequenceBits;
             long newest = GetNewestTimestamp();
 
