@@ -12,27 +12,27 @@ namespace SonwFlake
         /**
          * Start time cut (2020-05-03)
          */
-        private const long twepoch = 1588435200000L;
+        private const long Twepoch = 1588435200000L;
 
         /**
          * The number of bits occupied by workerId
          */
-        private const int workerIdBits = 10;
+        private const int WorkerIdBits = 10;
 
         /**
          * The number of bits occupied by timestamp
          */
-        private const int timestampBits = 41;
+        private const int TimestampBits = 41;
 
         /**
          * The number of bits occupied by sequence
          */
-        private const int sequenceBits = 12;
+        private const int SequenceBits = 12;
 
         /**
          * Maximum supported machine id, the result is 1023
          */
-        private const int maxWorkerId = ~(-1 << workerIdBits);
+        private const int MaxWorkerId = ~(-1 << WorkerIdBits);
 
         /**
          * business meaning: machine ID (0 ~ 1023)
@@ -41,7 +41,7 @@ namespace SonwFlake
          * middle 10 bit: workerId
          * lowest 53 bit: all 0
          */
-        private long? workerId;
+        private long? _workerId;
 
         /**
          * timestamp and sequence mix in one Long
@@ -49,12 +49,12 @@ namespace SonwFlake
          * middle  41 bit: timestamp
          * lowest  12 bit: sequence
          */
-        private long timestampAndSequence;
+        private long _timestampAndSequence;
 
         /**
          * mask that help to extract timestamp and sequence from a long
          */
-        private const long timestampAndSequenceMask = ~(-1L << (timestampBits + sequenceBits));
+        private const long TimestampAndSequenceMask = ~(-1L << (TimestampBits + SequenceBits));
 
 
         private static SnowFlake _instance;
@@ -108,8 +108,8 @@ namespace SonwFlake
             {
                 WaitIfNecessary();
 
-                long timestampWithSequence = timestampAndSequence & timestampAndSequenceMask;
-                return (long)(this.workerId | timestampWithSequence);
+                long timestampWithSequence = _timestampAndSequence & TimestampAndSequenceMask;
+                return (long)(this._workerId | timestampWithSequence);
             }
         }
 
@@ -119,8 +119,8 @@ namespace SonwFlake
         /// </summary>
         private void WaitIfNecessary()
         {
-            long currentWithSequence = ++this.timestampAndSequence;
-            long current = currentWithSequence >> sequenceBits;
+            long currentWithSequence = ++this._timestampAndSequence;
+            long current = currentWithSequence >> SequenceBits;
             long newest = GetNewestTimestamp();
 
             if (current >= newest)
@@ -136,13 +136,13 @@ namespace SonwFlake
                 workerId = GenerateWorkerId();
             }
 
-            if (workerId > maxWorkerId || workerId < 0)
+            if (workerId > MaxWorkerId || workerId < 0)
             {
-                String message = String.Format("worker Id can't be greater than %d or less than 0", maxWorkerId);
+                String message = String.Format("worker Id can't be greater than %d or less than 0", MaxWorkerId);
                 throw new ArgumentException(message);
             }
 
-            this.workerId = workerId << (timestampBits + sequenceBits);
+            this._workerId = workerId << (TimestampBits + SequenceBits);
         }
 
 
@@ -168,8 +168,8 @@ namespace SonwFlake
         private void InitTimestampAndSequence()
         {
             long timestamp = GetNewestTimestamp();
-            long timestampWithSequence = timestamp << sequenceBits;
-            this.timestampAndSequence = timestampWithSequence;
+            long timestampWithSequence = timestamp << SequenceBits;
+            this._timestampAndSequence = timestampWithSequence;
         }
 
         /// <summary>
@@ -178,7 +178,7 @@ namespace SonwFlake
         /// <returns></returns>
         private long GetNewestTimestamp()
         {
-            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - twepoch;
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - Twepoch;
         }
 
         /// <summary>
@@ -210,7 +210,7 @@ namespace SonwFlake
         /// <returns></returns>
         private long GenerateRandomWorkerId()
         {
-            return new Random().Next(maxWorkerId + 1);
+            return new Random().Next(MaxWorkerId + 1);
         }
     }
 }
